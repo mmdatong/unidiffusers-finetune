@@ -13,7 +13,7 @@ if __name__=="__main__":
     prompt = "A photo of sks dog in a bucket"
 
     for ep in [99, 199, 299]:
-        model_id_or_path = "outputs/".format(ep)
+        model_id_or_path = "outputs/{}".format(ep)
         pipe_new = create_pipeline(model_id_or_path, device="cuda")
         save_path = "dog-bucket_ep{}.png".format(ep)
 

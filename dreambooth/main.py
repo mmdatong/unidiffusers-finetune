@@ -228,7 +228,7 @@ def save_models(unet, text_encoder, output_dir, model_id_or_path):
             scheduler_args["variance_type"] = variance_type
     pipe.scheduler = pipe.scheduler.from_config(pipe.scheduler.config, **scheduler_args)
 
-    pipe.save_pretrained("/root/autodl-tmp/output_diffusers_nocliplatent_{}".format(epoch))
+    pipe.save_pretrained(output_dir)
 
 
 
@@ -300,17 +300,20 @@ def main():
     accelerator = create_accelarator(args)
 
     if args.train_text_encoder:
+        optimizer = create_optimizer(args, pipe.unet, pipe.text_encoder)
+        lr_scheduler = create_lr_scheduler(args, optimizer, accelerator)
 
         pipe.unet, pipe.text_encoder, optimizer, dataloader, lr_scheduler = accelerator.prepare(
                 pipe.unet, pipe.text_encoder, optimizer, dataloader, lr_scheduler
                 )
     else:
         optimizer = create_optimizer(args, unet, text_encoder=None)
+        lr_scheduler = create_lr_scheduler(args, optimizer, accelerator)
 
-    lr_scheduler = create_lr_scheduler(args, optimizer, accelerator)
-    pipe.unet,  optimizer, dataloader, lr_scheduler = accelerator.prepare(
-            pipe.unet, optimizer, dataloader, lr_scheduler
-            )
+        pipe.unet,  optimizer, dataloader, lr_scheduler = accelerator.prepare(
+                pipe.unet,  optimizer, dataloader, lr_scheduler
+                )
+
 
     weight_dtype = torch.float32
     pipe.vae.to(accelerator.device, dtype=weight_dtype)
@@ -409,10 +412,12 @@ def main():
             
         if (epoch+1)%100 == 0:
             output_dir = os.path.join(args.output_dir, str(epoch))
+            os.makedirs(output_dir, exist_ok=True)
+
             save_models(
                     unet=accelerator.unwrap_model(pipe.unet),
                     text_encoder=accelerator.unwrap_model(pipe.text_encoder),
-                    output_dir=args.output_dir,
+                    output_dir=output_dir,
                     model_id_or_path=args.model_id_or_path
                     )
 

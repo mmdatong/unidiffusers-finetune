@@ -12,8 +12,7 @@ accelerate launch main.py \
   --model_id_or_path $MODEL_NAME \
   --output_dir=$OUTPUT_DIR \
   --lr_warmup_steps=0 \
-  --train_text_encoder \
-  --max_train_steps=1500
+  --max_train_steps=1500 
 
   #--pretrained_model_name_or_path=$MODEL_NAME  \
   #--instance_data_dir=$INSTANCE_DIR \
